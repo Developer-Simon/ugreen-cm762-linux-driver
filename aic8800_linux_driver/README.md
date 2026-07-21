@@ -17,6 +17,18 @@ sudo apt install build-essential dkms dpkg-dev linux-headers-$(uname -r)
 
 This will create: `ugreen-cm762-aic8800-dkms_1.4.0-kernel6.17_all.deb`
 
+## Kernel Compatibility
+
+The driver has been tested and builds cleanly against kernels from the 3.x series through 7.1.x, including:
+
+- Kernel 6.x (`in_hardirq()` / timer API changes)
+- Kernel 7.1+ (`cfg80211_ops` callbacks such as `add_key`, `add_station`, `get_station`, etc. now take `struct wireless_dev *` instead of `struct net_device *`; `struct ieee80211_mgmt` action-frame union layout changed)
+
+Version-specific differences are handled internally via `LINUX_VERSION_CODE` guards, so a single source tree supports all of the above without manual patching.
+
+The kernel 7.1 compatibility changes in this CM762 driver were adapted from the generic AIC8800 implementation in [asanrivas/aic8800-linux-driver](https://github.com/asanrivas/aic8800-linux-driver), especially commit `270173e`.
+
+
 ### Install the Package
 ```bash
 sudo dpkg -i ugreen-cm762-aic8800-dkms_1.4.0-kernel6.17_all.deb
@@ -70,7 +82,7 @@ echo "aic8800_fdrv" | sudo tee /etc/modules-load.d/aic8800.conf
 ✓ **DKMS Integration** - Automatic rebuild on kernel updates
 ✓ **Auto-load on Boot** - Driver loads automatically after installation  
 ✓ **Clean Uninstallation** - Removes all files and DKMS entries
-✓ **Kernel 6.17+ Compatible** - Patched for modern kernel APIs
+✓ **Kernel 6.17+ and 7.1 Compatible** - Patched for modern kernel APIs
 
 ## Troubleshooting
 

@@ -85,6 +85,12 @@
 #define IEEE80211_HE_PHY_CAP3_RX_HE_MU_PPDU_FROM_NON_AP_STA IEEE80211_HE_PHY_CAP3_RX_PARTIAL_BW_SU_IN_20MHZ_MU
 #endif
 
+/* kernel 7.1 switched several cfg80211_ops callbacks (add_key, get_key,
+ * del_key, set_default_mgmt_key, add_station, del_station, change_station,
+ * get_station, dump_station) from struct net_device * to struct wireless_dev *
+ */
+#define WDEV_CFG80211_OPS_KERNEL_VERSION KERNEL_VERSION(7, 1, 0)
+
 #ifndef IEEE80211_MAX_AMPDU_BUF
 #define IEEE80211_MAX_AMPDU_BUF                             0x100
 #endif
