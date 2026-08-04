@@ -1,17 +1,57 @@
 # UGREEN CM762 USB Wireless Adapter Driver Installation Guide
 
-## AIC8800 Driver for Linux Kernel 6.17+
+## AIC8800 Driver Installation
 
-This driver has been patched for compatibility with Linux kernel 6.17.0 and later versions.
+Build and test the driver against the headers for the kernel that will load it.
 
 ### System Requirements
 
-- Linux kernel 6.17.0 or later
+- A Linux kernel with matching headers
 - GCC compiler
 - Linux kernel headers for your running kernel
 - make, dpkg-dev (for building Debian package)
 
 ### Quick Installation
+
+### Selecting a Supported Kernel Build
+
+The repository uses one source tree for both kernel versions. The kernel-specific
+path is selected during compilation by `LINUX_VERSION_CODE`, which comes from the
+headers in `KDIR`; there is no separate 6.17 or 7.1 source archive.
+
+For the running kernel, install matching headers and build:
+
+```bash
+TARGET_KERNEL=$(uname -r)
+sudo apt install build-essential linux-headers-${TARGET_KERNEL} dkms
+make -C drivers/aic8800 KDIR=/lib/modules/${TARGET_KERNEL}/build KVER=${TARGET_KERNEL}
+```
+
+For an installed 7.1 kernel, use its exact version. The same command builds for
+6.17 when `TARGET_KERNEL` names the installed 6.17 kernel instead. Linux 7.1 was
+verified on Fedora 44 with `7.1.4-200.fc44.x86_64` and matching `kernel-devel`;
+6.17 remains a source-compatibility target that must be validated against its
+exact distribution headers.
+
+```bash
+TARGET_KERNEL=7.1.0-custom
+test -e /lib/modules/${TARGET_KERNEL}/build/Makefile
+make -C drivers/aic8800 \
+	KDIR=/lib/modules/${TARGET_KERNEL}/build \
+	KVER=${TARGET_KERNEL}
+```
+
+Install the result only into the matching kernel tree. Do not copy a module built
+against 6.17 into 7.1, or vice versa. With DKMS, build each target explicitly:
+
+```bash
+sudo dkms build -m aic8800 -v 1.4.0 -k ${TARGET_KERNEL}
+sudo dkms install -m aic8800 -v 1.4.0 -k ${TARGET_KERNEL}
+dkms status aic8800/1.4.0
+```
+
+The `-k` value must be the exact kernel version shown by the directory under
+`/lib/modules/`. DKMS then keeps separate builds for each exact target kernel.
 
 #### Method 1: Direct Installation
 
@@ -63,7 +103,7 @@ ip a  # Check for new wireless interface (wlx...)
 ```bash
 sudo mkdir -p /usr/src/aic8800-1.4.0
 sudo cp -r drivers/aic8800/* /usr/src/aic8800-1.4.0/
-sudo cp fw /usr/src/aic8800-1.4.0/ -r
+sudo cp -r fw /usr/src/aic8800-1.4.0/
 ```
 
 2. **Create DKMS configuration:**
@@ -137,14 +177,16 @@ modinfo aic8800_fdrv
 
 ### Kernel Compatibility Notes
 
-This driver has been patched for Linux kernel 6.17+ with the following changes:
+The driver contains compatibility work for modern Linux kernels, including:
 
 - Timer API compatibility: `del_timer` → `timer_delete`, `del_timer_sync` → `timer_delete_sync`
 - cfg80211 API updates for wireless configuration
 - Wakelock API updates for power management
 - Container-based timer callbacks using `container_of`
 
-The driver maintains backward compatibility with older kernels through version checks.
+Older-kernel compatibility branches are retained through version checks, but
+older kernels are not current tested support. See the root README for the
+canonical support status.
 
 ### Supported Devices
 
@@ -160,6 +202,6 @@ The driver maintains backward compatibility with older kernels through version c
 ### License
 
 Original driver: Copyright (C) RivieraWaves 2012-2019
-Kernel 6.17+ patches: 2025
+Kernel compatibility patches: see `release_note.txt`.
 
 For support and issues, check the driver documentation or system logs.
