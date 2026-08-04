@@ -15,23 +15,29 @@ sudo apt install build-essential dkms dpkg-dev linux-headers-$(uname -r)
 ./build-debian-package.sh
 ```
 
-This will create: `ugreen-cm762-aic8800-dkms_1.4.0-kernel6.17_all.deb`
+This will create: `ugreen-cm762-aic8800-dkms_1.4.0_all.deb`
 
 ## Kernel Compatibility
 
-The driver has been tested and builds cleanly against kernels from the 3.x series through 7.1.x, including:
+The current support target is:
+
+- Linux 7.1.x: source compatibility and build verified on Fedora 44 with `7.1.4-200.fc44.x86_64` and matching `kernel-devel`
+- Linux 6.17.x: source compatibility is targeted; build against the exact distribution headers before installation
+- Older kernels: compatibility branches remain in the inherited source, but are not current tested support
+
+The relevant compatibility changes include:
 
 - Kernel 6.x (`in_hardirq()` / timer API changes)
-- Kernel 7.1+ (`cfg80211_ops` callbacks such as `add_key`, `add_station`, `get_station`, etc. now take `struct wireless_dev *` instead of `struct net_device *`; `struct ieee80211_mgmt` action-frame union layout changed)
+- Kernel 7.1 (`cfg80211_ops` callbacks such as `add_key`, `add_station`, and `get_station` now take `struct wireless_dev *` instead of `struct net_device *`; the `struct ieee80211_mgmt` action-frame union layout changed)
 
-Version-specific differences are handled internally via `LINUX_VERSION_CODE` guards, so a single source tree supports all of the above without manual patching.
+Version-specific differences are handled internally via `LINUX_VERSION_CODE` guards, so one source tree can be built for the supported targets without manual patching.
 
 The kernel 7.1 compatibility changes in this CM762 driver were adapted from the generic AIC8800 implementation in [asanrivas/aic8800-linux-driver](https://github.com/asanrivas/aic8800-linux-driver), especially commit `270173e`.
 
 
 ### Install the Package
 ```bash
-sudo dpkg -i ugreen-cm762-aic8800-dkms_1.4.0-kernel6.17_all.deb
+sudo dpkg -i ugreen-cm762-aic8800-dkms_1.4.0_all.deb
 ```
 
 If you get dependency errors:
@@ -82,7 +88,7 @@ echo "aic8800_fdrv" | sudo tee /etc/modules-load.d/aic8800.conf
 ✓ **DKMS Integration** - Automatic rebuild on kernel updates
 ✓ **Auto-load on Boot** - Driver loads automatically after installation  
 ✓ **Clean Uninstallation** - Removes all files and DKMS entries
-✓ **Kernel 6.17+ and 7.1 Compatible** - Patched for modern kernel APIs
+✓ **Kernel 6.17 and 7.1 compatible** - Patched for the current target APIs
 
 ## Troubleshooting
 
@@ -102,7 +108,7 @@ sudo dmesg | grep -i aic8800
 ```bash
 # Rebuild DKMS modules
 sudo dkms status
-sudo dkms install aic8800/1.4.0-kernel6.17
+sudo dkms install aic8800/1.4.0
 ```
 
 **After kernel update:**
@@ -114,13 +120,13 @@ sudo dkms autoinstall
 
 ## Files Included in Package
 
-- `/usr/src/aic8800-1.4.0-kernel6.17/` - Driver source code
+- `/usr/src/aic8800-1.4.0/` - Driver source code
 - `/etc/modules-load.d/aic8800.conf` - Auto-load configuration
 - `/usr/share/doc/ugreen-cm762-aic8800-dkms/` - Documentation
 
 ## System Requirements
 
-- Linux kernel 6.17.0 or later
+- Linux kernel 6.17.x or 7.1.x for the current support target
 - DKMS 2.1.0.0 or later
 - GCC compiler and kernel headers
 - USB 2.0/3.0 port

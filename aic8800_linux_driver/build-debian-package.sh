@@ -6,10 +6,10 @@
 set -e  # Exit on error
 
 PACKAGE_NAME="ugreen-cm762-aic8800-dkms"
-PACKAGE_VERSION="1.4.0-kernel6.17"
+PACKAGE_VERSION="1.4.0"
 PACKAGE_ARCH="all"
 MAINTAINER="Driver Maintainer <driver@example.com>"
-DESCRIPTION="UGREEN CM762 USB Wireless Adapter Driver (AIC8800 chipset) with kernel 6.17+ support"
+DESCRIPTION="UGREEN CM762 USB Wireless Adapter Driver (AIC8800 chipset) for Linux kernels 6.17 and 7.1"
 
 BUILD_DIR="$(pwd)/debian-package"
 PACKAGE_DIR="${BUILD_DIR}/${PACKAGE_NAME}_${PACKAGE_VERSION}_${PACKAGE_ARCH}"
@@ -83,7 +83,7 @@ Source: UGREEN
 
 Files: *
 Copyright: 2012-2019 RivieraWaves
-           2025 Kernel 6.17+ patches
+           2025 Kernel 6.17 and 7.1 compatibility work
 License: GPL-2+
 
 License: GPL-2+
@@ -186,11 +186,13 @@ Installed-Size: ${INSTALLED_SIZE}
 Description: ${DESCRIPTION}
  This package provides DKMS support for the UGREEN CM762 USB Wireless
  Adapter driver (AIC8800 chipset). The driver has been patched for
- compatibility with Linux kernel 6.17 and later versions.
+    compatibility with Linux kernels 6.17 and 7.1. Build against the exact
+    headers for the kernel that will load the modules.
  .
  Features:
-  - Kernel 6.17+ timer API compatibility
+    - Kernel 6.17 timer API compatibility
   - Updated cfg80211 wireless configuration API
+    - Kernel 7.1 wireless API compatibility
   - Modern power management support
   - Automatic rebuild on kernel updates via DKMS
  .

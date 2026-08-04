@@ -1,6 +1,7 @@
 # Compiled kernel modules
 *.ko
 *.o
+*.o.*
 *.mod
 *.mod.c
 *.mod.o
@@ -9,15 +10,23 @@
 modules.order
 Module.symvers
 
+# Kernel build metadata
+*.d
+*.dtb
+*.dtb.S
+*.map
+
+# DKMS and package staging
+debian-package/
+*.deb
+*.changes
+*.buildinfo
+
 # Build artifacts
 *.a
 *.so
 *.dylib
 *.o.d
-
-# Debian package build
-debian-package/
-*.deb.bak
 
 # Editor files
 *~
