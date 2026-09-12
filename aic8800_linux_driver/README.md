@@ -1,159 +1,109 @@
-# UGREEN CM762 AIC8800 Driver - Quick Reference
+# UGREEN CM762 AIC8800 driver — quick reference
 
-## Installation Guide Created ✓
-See `INSTALL.md` for detailed installation instructions.
+See [`INSTALL.md`](INSTALL.md) for detailed installation steps.
 
-## Supported Hardware
+## Supported hardware
 
-The UGREEN CM762 identifies itself as USB ID `a69c:8d80` (AIC8800D80 chip) once
-switched out of its initial mass-storage mode. `aic_load_fw` already recognized
-this ID and carries the matching `aic8800D80` firmware, but the `aic8800_fdrv`
-network driver's USB ID table and `aicwf_usb_chipmatch()` did not — the device
-would load firmware but never bind a wireless interface. `USB_PRODUCT_ID_AIC8800D80`
-is now registered and routed through the same code path already used for other
-AIC8800-family USB IDs (D81, D41, D83-D88, TP-Link/Tenda OEM variants).
+The UGREEN CM762 identifies itself as USB ID `a69c:8d80` (AIC8800D80 chip)
+once switched out of its initial mass-storage mode. `aic_load_fw` already
+recognized this ID and carries the matching `aic8800D80` firmware, but the
+`aic8800_fdrv` network driver's USB ID table and `aicwf_usb_chipmatch()`
+didn't: the device would load firmware but never bind a wireless interface.
+`USB_PRODUCT_ID_AIC8800D80` is now registered there too, routed through the
+same code path used for the other AIC8800-family USB IDs (D81, D41, D83-D88,
+TP-Link/Tenda OEM variants).
 
-## Building the Debian Package
+## Building the Debian package
 
-### Prerequisites
 ```bash
 sudo apt install build-essential dkms dpkg-dev linux-headers-$(uname -r)
-```
-
-### Build the Package
-```bash
 ./build-debian-package.sh
 ```
 
-This will create: `ugreen-cm762-aic8800-dkms_1.4.0_all.deb`
+Produces `ugreen-cm762-aic8800-dkms_1.4.0_all.deb`.
 
-## Kernel Compatibility
-
-The current support target is:
-
-- Linux 7.2.x: source compatibility and build verified on Fedora 44 with `7.2.4-200.fc44.x86_64` and matching `kernel-devel`
-- Linux 7.1.x: source compatibility and build verified on Fedora 44 with `7.1.4-200.fc44.x86_64` and matching `kernel-devel`
-- Linux 6.17.x: source compatibility is targeted; build against the exact distribution headers before installation
-- Older kernels: compatibility branches remain in the inherited source, but are not current tested support
-
-The relevant compatibility changes include:
-
-- Kernel 6.x (`in_hardirq()` / timer API changes)
-- Kernel 7.1 (`cfg80211_ops` callbacks such as `add_key`, `add_station`, and `get_station` now take `struct wireless_dev *` instead of `struct net_device *`; the `struct ieee80211_mgmt` action-frame union layout changed)
-- Kernel 7.2 (the `remain_on_channel` `cfg80211_ops` callback gained an `rx_addr` parameter; `strncpy()` was removed from the kernel image entirely, so a local compat implementation is provided for the driver's existing call sites)
-
-Version-specific differences are handled internally via `LINUX_VERSION_CODE` guards, so one source tree can be built for the supported targets without manual patching.
-
-The kernel 7.1 compatibility changes in this CM762 driver were adapted from the generic AIC8800 implementation in [asanrivas/aic8800-linux-driver](https://github.com/asanrivas/aic8800-linux-driver), especially commit `270173e`.
-
-
-### Install the Package
 ```bash
 sudo dpkg -i ugreen-cm762-aic8800-dkms_1.4.0_all.deb
 ```
 
-If you get dependency errors:
-```bash
-sudo apt-get install -f
-```
+If dependencies are missing: `sudo apt-get install -f`. To remove:
+`sudo dpkg -r ugreen-cm762-aic8800-dkms`.
 
-### Verify Installation
-```bash
-# Check if module is loaded
-lsmod | grep aic8800
+## Kernel compatibility
 
-# Check wireless interfaces
-ip a
+- 7.2.x: verified on Fedora 44, `7.2.4-200.fc44.x86_64`
+- 7.1.x: verified on Fedora 44, `7.1.4-200.fc44.x86_64`
+- 6.17.x: targeted; build against the exact distribution headers
+- Older kernels: compatibility code remains from the upstream source, not currently tested
 
-# View kernel messages
-sudo dmesg | tail -20
-```
+Changes selected via `LINUX_VERSION_CODE` at compile time, so one source
+tree covers all supported kernels without manual patching:
 
-### Remove the Package
-```bash
-sudo dpkg -r ugreen-cm762-aic8800-dkms
-```
+- 6.x: `in_hardirq()` / timer API changes
+- 7.1: several `cfg80211_ops` callbacks (`add_key`, `add_station`, `get_station`, ...) take `struct wireless_dev *` instead of `struct net_device *`; the `struct ieee80211_mgmt` action-frame union layout changed
+- 7.2: `remain_on_channel` gained an `rx_addr` parameter; `strncpy()` was removed from the kernel image entirely, so the driver provides its own implementation for its existing call sites
 
-## Manual Installation (Alternative)
+The kernel 7.1 compatibility work was adapted from
+[asanrivas/aic8800-linux-driver](https://github.com/asanrivas/aic8800-linux-driver)
+(commit `270173e`).
 
-If you don't want to use the Debian package:
+## Manual installation
 
 ```bash
-# Build
 sudo make -C drivers/aic8800
-
-# Install
 sudo make -C drivers/aic8800 install
-
-# Update dependencies
 sudo depmod -a
-
-# Load module
 sudo modprobe aic8800_fdrv
 
-# Auto-load on boot
+# auto-load on boot
 echo "aic8800_fdrv" | sudo tee /etc/modules-load.d/aic8800.conf
 ```
 
-## Package Features
+## Verifying the install
 
-✓ **DKMS Integration** - Automatic rebuild on kernel updates
-✓ **Auto-load on Boot** - Driver loads automatically after installation  
-✓ **Clean Uninstallation** - Removes all files and DKMS entries
-✓ **Kernel 6.17 and 7.1 compatible** - Patched for the current target APIs
+```bash
+lsmod | grep aic8800
+ip a
+sudo dmesg | tail -20
+```
+
+A working install shows a new wireless interface (`wlx...`) and a kernel
+message: `usbcore: registered new interface driver aic8800_fdrv`.
 
 ## Troubleshooting
 
-**No wireless interface after installation:**
+No wireless interface after installation:
 ```bash
-# Check if USB device is detected
 lsusb | grep -i wireless
-
-# Manually load the module
 sudo modprobe aic8800_fdrv
-
-# Check for errors
 sudo dmesg | grep -i aic8800
 ```
 
-**Module not found:**
+Module not found:
 ```bash
-# Rebuild DKMS modules
 sudo dkms status
 sudo dkms install aic8800/1.4.0
 ```
 
-**After kernel update:**
-The DKMS system should automatically rebuild the driver.
-If not:
-```bash
-sudo dkms autoinstall
-```
+After a kernel update, DKMS should rebuild automatically. If it doesn't:
+`sudo dkms autoinstall`.
 
-## Files Included in Package
+## Package contents
 
-- `/usr/src/aic8800-1.4.0/` - Driver source code
-- `/etc/modules-load.d/aic8800.conf` - Auto-load configuration
-- `/usr/share/doc/ugreen-cm762-aic8800-dkms/` - Documentation
+- `/usr/src/aic8800-1.4.0/` — driver source
+- `/etc/modules-load.d/aic8800.conf` — auto-load config
+- `/usr/share/doc/ugreen-cm762-aic8800-dkms/` — documentation
 
-## System Requirements
+## Requirements
 
-- Linux kernel 6.17.x or 7.1.x for the current support target
+- Linux kernel 6.17.x, 7.1.x, or 7.2.x
 - DKMS 2.1.0.0 or later
-- GCC compiler and kernel headers
+- GCC and matching kernel headers
 - USB 2.0/3.0 port
 
-## Driver Information
+## Driver details
 
-- **Module Name:** aic8800_fdrv
-- **Chipset:** AIC8800
-- **Interface:** USB Wireless
-- **Supported Device:** UGREEN CM762
-
-## Success Indicators
-
-After installation, you should see:
-- ✓ New wireless interface (wlxXXXXXXXXXXXX) in `ip a`
-- ✓ Module loaded: `lsmod | grep aic8800_fdrv`
-- ✓ DKMS status: `dkms status | grep aic8800`
-- ✓ Kernel message: "usbcore: registered new interface driver aic8800_fdrv"
+- Module name: `aic8800_fdrv`
+- Chipset: AIC8800 (D80 variant)
+- Interface: USB
+- Device: UGREEN CM762

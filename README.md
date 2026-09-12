@@ -1,50 +1,44 @@
-# UGREEN CM762 USB Wireless Adapter Driver for Linux Kernels 6.17 and 7.1
+# UGREEN CM762 AIC8800 Linux driver
 
+[![Build](https://github.com/Developer-Simon/ugreen-cm762-linux-driver/actions/workflows/build.yml/badge.svg)](https://github.com/Developer-Simon/ugreen-cm762-linux-driver/actions/workflows/build.yml)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![Kernel: 6.17 and 7.1](https://img.shields.io/badge/Kernel-6.17%20%7C%207.1-green.svg)](https://kernel.org/)
+[![Kernel: 6.17 | 7.1 | 7.2](https://img.shields.io/badge/Kernel-6.17%20%7C%207.1%20%7C%207.2-green.svg)](https://kernel.org/)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-orange.svg)](https://www.linux.org/)
 
-Patched AIC8800 driver for the UGREEN CM762 USB Wireless Adapter. The current
-support target is Linux 6.17 and 7.1; each build must use the exact headers for
-the kernel that will load the modules.
+Patched AIC8800 driver for the UGREEN CM762 USB Wi-Fi adapter. The chip is an
+AIC8800D80 (USB ID `a69c:8d80`); the device enumerates in mass-storage mode
+first and switches to that ID once usb-modeswitch runs.
 
-## 🎯 Features
+Supported kernels: 7.2.x, 7.1.x, and 6.17.x. There are no separate source
+trees per kernel; the compatibility code picks the right API at compile time
+based on the kernel headers used for the build.
 
-- ✅ **Kernel 6.17 and 7.1 source compatibility** - Version-specific APIs are selected at compile time
-- ✅ **DKMS Integration** - Automatic rebuild on kernel updates
-- ✅ **Debian Package** - Easy installation with `.deb` package
-- ✅ **Auto-load on Boot** - Driver loads automatically after installation
-- ✅ **Clean Uninstall** - Proper removal with all files cleaned up
+## Installation
 
-## Quick Installation
-
-## Selecting the Kernel Build
-
-There are no separate 6.17 and 7.1 driver source trees. The compatibility code
-selects the kernel API at compile time from the kernel headers used by the build.
-Choose the target kernel by choosing its matching headers:
-
-| Target kernel | Build against |
-| --- | --- |
-| Linux 6.17 | `/lib/modules/6.17.x-.../build` |
-| Linux 7.1 | `/lib/modules/7.1.x-.../build` |
-
-### Support Status
-
-| Kernel series | Status |
-| --- | --- |
-| Linux 7.1.x | Source compatibility and build verified on Fedora 44 with `7.1.4-200.fc44.x86_64` and matching `kernel-devel` |
-| Linux 6.17.x | Source compatibility is targeted; build against the exact distribution headers before installation |
-| Older kernels | Compatibility branches remain in the inherited source, but they are not current tested support |
-
-For the currently running kernel, install its matching headers and build normally:
+### Debian package
 
 ```bash
-sudo apt install build-essential linux-headers-$(uname -r)
-make -C drivers/aic8800
+cd aic8800_linux_driver
+./build-debian-package.sh
+sudo dpkg -i ./ugreen-cm762-aic8800-dkms_1.4.0_all.deb
 ```
 
-To build for another installed kernel, pass its kernel build directory and version:
+If dependencies are missing: `sudo apt-get install -f`
+
+### From source
+
+```bash
+git clone https://github.com/Developer-Simon/ugreen-cm762-linux-driver.git
+cd ugreen-cm762-linux-driver/aic8800_linux_driver
+
+sudo make -C drivers/aic8800
+sudo make -C drivers/aic8800 install
+sudo depmod -a
+sudo modprobe aic8800_fdrv
+```
+
+To build against a kernel other than the one currently running, pass its
+build directory and version:
 
 ```bash
 TARGET_KERNEL=7.1.0-custom
@@ -53,132 +47,68 @@ make -C drivers/aic8800 \
 	KVER=${TARGET_KERNEL}
 ```
 
-Replace `TARGET_KERNEL` with the exact 6.17 kernel version to build the 6.17
-variant. Confirm that the target headers exist before starting:
+Check the headers exist first: `test -e /lib/modules/${TARGET_KERNEL}/build/Makefile`.
+Modules built against one kernel's headers won't load on another — build and
+install separately per kernel, or let DKMS do that automatically on each
+kernel update.
+
+## Requirements
+
+- Kernel headers matching the running kernel (`linux-headers-$(uname -r)`)
+- build-essential / gcc
+- DKMS, for the packaged install
+
+## Verifying the install
 
 ```bash
-test -e /lib/modules/${TARGET_KERNEL}/build/Makefile
-```
-
-Do not build on 6.17 and then install those modules into 7.1, or the reverse.
-Build and install separately for each target kernel. DKMS handles this automatically:
-one source package is rebuilt once per installed kernel using that kernel's headers.
-
-### Option 1: Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/morjaradat/ugreen-cm762-linux-driver.git
-cd ugreen-cm762-linux-driver/aic8800_linux_driver
-
-# Build
-sudo make -C drivers/aic8800
-
-# Install
-sudo make -C drivers/aic8800 install
-
-# Load module
-sudo depmod -a
-sudo modprobe aic8800_fdrv
-```
-
-### Option 2: Build a Debian Package
-
-```bash
-cd aic8800_linux_driver
-./build-debian-package.sh
-# Install the generated package when ready
-sudo dpkg -i ./ugreen-cm762-aic8800-dkms_1.4.0_all.deb
-```
-
-## 📋 System Requirements
-
-- Linux kernel 6.17.x or 7.1.x for the current support target
-- GCC compiler
-- Linux kernel headers: `sudo apt install linux-headers-$(uname -r)`
-- DKMS (for package installation): `sudo apt install dkms`
-- Build tools: `sudo apt install build-essential`
-
-## 🔍 Verification
-
-After installation, verify the driver is working:
-
-```bash
-# Check module is loaded
 lsmod | grep aic8800
-
-# Check wireless interface
 ip a | grep wlx
-
-# View kernel messages
 sudo dmesg | grep -i aic8800
 ```
 
-You should see a new wireless interface (e.g., `wlxc83a35c64045`).
+A working install shows a `wlx...` interface in `ip a`.
 
-## 🛠️ Supported Hardware
+## Kernel compatibility
 
-- **Device:** UGREEN CM762 USB Wireless Adapter
-- **Chipset:** AIC8800
-- **Interface:** USB 2.0 / USB 3.0
-- **Vendor ID:** Check with `lsusb`
+| Kernel | Status |
+| --- | --- |
+| 7.2.x | Verified on Fedora 44, `7.2.4-200.fc44.x86_64` |
+| 7.1.x | Verified on Fedora 44, `7.1.4-200.fc44.x86_64` |
+| 6.17.x | Targeted; build against the exact distribution headers |
+| Older | Compatibility code remains from the upstream source, not currently tested |
 
-## 📦 What's Included
+Relevant changes, selected via `LINUX_VERSION_CODE` at compile time:
+
+- 6.x: `del_timer()` / `del_timer_sync()` → `timer_delete()` / `timer_delete_sync()`; `in_irq()` → `in_hardirq()`
+- 7.1: several `cfg80211_ops` callbacks (`add_key`, `add_station`, `get_station`, and others) take `struct wireless_dev *` instead of `struct net_device *`; the `struct ieee80211_mgmt` action-frame union layout changed
+- 7.2: `remain_on_channel` gained an `rx_addr` parameter; `strncpy()` was removed from the kernel image entirely, so the driver carries its own implementation for its existing call sites
+
+The kernel 7.1 compatibility work was adapted from
+[asanrivas/aic8800-linux-driver](https://github.com/asanrivas/aic8800-linux-driver)
+(commit `270173e`).
+
+## Repository layout
 
 ```
 .
-├── aic8800_linux_driver/           # Main driver source
-│   ├── drivers/aic8800/            # Kernel modules
-│   │   ├── aic8800_fdrv/          # Main driver module
-│   │   └── aic_load_fw/           # Firmware loader
-│   ├── fw/                        # Firmware files
-│   ├── build-debian-package.sh    # Debian package builder
-│   ├── README.md                  # Quick reference
-│   └── INSTALL.md                 # Installation guide
-├── docs/vendor/                   # Historical vendor references
-├── tools/legacy/                  # Historical Kali header helpers
-└── release_note.txt               # Release notes
+├── aic8800_linux_driver/       driver source
+│   ├── drivers/aic8800/        kernel modules (aic8800_fdrv, aic_load_fw)
+│   ├── fw/                     firmware
+│   ├── build-debian-package.sh
+│   └── INSTALL.md
+├── docs/vendor/                 vendor PDFs, reference only
+├── tools/legacy/                 old Kali header-install scripts
+└── release_note.txt
 ```
 
-## 🔧 Kernel Compatibility Patches
+## Uninstalling
 
-The compatibility work covers the current 6.17 and 7.1 targets. The 6.x and
-7.1 changes are selected from `LINUX_VERSION_CODE` during compilation:
-
-### Timer API Updates
-- `del_timer()` → `timer_delete()`
-- `del_timer_sync()` → `timer_delete_sync()`
-- `from_timer()` → `container_of()` macro
-
-### cfg80211 Wireless API
-- Updated `cfg80211_rx_spurious_frame()` with `sme` parameter
-- Updated `cfg80211_rx_unexpected_4addr_frame()` with `sme` parameter
-- Disabled incompatible callback functions in `cfg80211_ops`
-
-### Linux 7.1 API Changes
-- Updated `cfg80211_ops` callbacks to use `struct wireless_dev *` where required
-- Updated action-frame handling for the changed `struct ieee80211_mgmt` layout
-- Replaced the incompatible `in_irq()` check with `in_hardirq()`
-
-### Headers
-- Added `<linux/version.h>` for version checking
-- Added `<linux/timer.h>` for timer functions
-- Proper include ordering for compatibility
-
-## 📖 Documentation
-
-- [**README.md**](aic8800_linux_driver/README.md) - Quick reference guide
-- [**INSTALL.md**](aic8800_linux_driver/INSTALL.md) - Detailed installation instructions
-- [**Release notes**](release_note.txt) - Historical driver releases
-
-## 🗑️ Uninstallation
-
-### Debian Package:
+Debian package:
 ```bash
 sudo dpkg -r ugreen-cm762-aic8800-dkms
 ```
 
-### Manual Installation:
+Manual install:
 ```bash
 sudo modprobe -r aic8800_fdrv aic_load_fw
 sudo rm /lib/modules/$(uname -r)/kernel/drivers/net/wireless/aic8800/*.ko
@@ -186,81 +116,42 @@ sudo depmod -a
 sudo rm /etc/modules-load.d/aic8800.conf
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
-### Driver not loading?
+No wireless interface after loading the module:
 ```bash
-# Check USB device
 lsusb | grep -i wireless
-
-# Check kernel logs
 sudo dmesg | tail -30
-
-# Manually load module
-sudo modprobe aic8800_fdrv
-```
-
-### No wireless interface?
-```bash
-# Reload module
 sudo modprobe -r aic8800_fdrv
 sudo modprobe aic8800_fdrv
-
-# Check interface
-ip link show
 ```
+Confirm the device shows up as `a69c:8d80` and that dmesg reports something
+like "New interface create wlan0". If it doesn't, the driver isn't binding
+to the device.
 
-### After kernel update?
-```bash
-# DKMS should auto-rebuild, but you can force it:
-sudo dkms autoinstall
-sudo dkms status | grep aic8800
-```
+Interface exists but scans return nothing: check for a stray
+`wpa_supplicant.service` running independently of NetworkManager
+(`systemctl status wpa_supplicant`). If NetworkManager and a separate
+supplicant instance both hold the interface, scans can fail with
+`SIOCSIWSCAN: Inappropriate ioctl for device` — that's the legacy WEXT API,
+which this driver doesn't implement on purpose. Stop the stray service
+(`sudo systemctl stop wpa_supplicant`) and let NetworkManager manage the
+interface directly.
 
-## 🤝 Contributing
+After a kernel update, DKMS should rebuild automatically. If it doesn't:
+`sudo dkms autoinstall`.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Release workflow
 
-### Areas for contribution:
-- Testing on different kernel versions
-- Support for additional AIC8800 devices
-- Bug fixes and improvements
-- Documentation enhancements
+Build packages locally with `aic8800_linux_driver/build-debian-package.sh`.
+Generated `.deb` files are release artifacts and are not committed to this
+tree. Inspect one with `dpkg-deb --info` and `dpkg-deb --contents` before
+publishing.
 
-## 📝 License
+## License
 
-This driver is based on the original AIC8800 driver:
-- Original: Copyright (C) RivieraWaves 2012-2019
-- Kernel 6.17 and 7.1 compatibility work: 2026
+Based on the original AIC8800 driver, Copyright (C) RivieraWaves 2012-2019.
+Kernel 6.17/7.1/7.2 compatibility and CM762 hardware support added in 2026.
+GPL v2, see [LICENSE](LICENSE).
 
-Licensed under GPL v2.0 - see the [LICENSE](LICENSE) file for details.
-
-## ⚠️ Disclaimer
-
-This driver is provided "as-is" without warranty of any kind. Use at your own risk.
-Always backup your system before installing kernel drivers.
-
-## Release Workflow
-
-Build packages locally with `aic8800_linux_driver/build-debian-package.sh`. Generated
-`.deb` files are release artifacts and are intentionally not committed to this source
-tree. Inspect a package with `dpkg-deb --info` and `dpkg-deb --contents` before publishing it.
-
-## 📊 Tested On
-
-- Testing is documented in the release notes; verify the running kernel headers before building.
-
-## 🌟 Credits
-
-- Original driver by RivieraWaves
-- Kernel 6.17 and 7.1 compatibility patches
-- UGREEN hardware support
-
-## 📞 Support
-
-For issues and questions, check the installation guide, driver build output, and kernel logs.
-- Review kernel logs: `sudo dmesg | grep aic8800`
-
----
-
-**Made with ❤️ for the Linux community**
+Provided as-is; back up your system before installing kernel modules.
