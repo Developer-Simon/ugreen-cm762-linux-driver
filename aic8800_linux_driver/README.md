@@ -3,6 +3,16 @@
 ## Installation Guide Created ✓
 See `INSTALL.md` for detailed installation instructions.
 
+## Supported Hardware
+
+The UGREEN CM762 identifies itself as USB ID `a69c:8d80` (AIC8800D80 chip) once
+switched out of its initial mass-storage mode. `aic_load_fw` already recognized
+this ID and carries the matching `aic8800D80` firmware, but the `aic8800_fdrv`
+network driver's USB ID table and `aicwf_usb_chipmatch()` did not — the device
+would load firmware but never bind a wireless interface. `USB_PRODUCT_ID_AIC8800D80`
+is now registered and routed through the same code path already used for other
+AIC8800-family USB IDs (D81, D41, D83-D88, TP-Link/Tenda OEM variants).
+
 ## Building the Debian Package
 
 ### Prerequisites
@@ -21,6 +31,7 @@ This will create: `ugreen-cm762-aic8800-dkms_1.4.0_all.deb`
 
 The current support target is:
 
+- Linux 7.2.x: source compatibility and build verified on Fedora 44 with `7.2.4-200.fc44.x86_64` and matching `kernel-devel`
 - Linux 7.1.x: source compatibility and build verified on Fedora 44 with `7.1.4-200.fc44.x86_64` and matching `kernel-devel`
 - Linux 6.17.x: source compatibility is targeted; build against the exact distribution headers before installation
 - Older kernels: compatibility branches remain in the inherited source, but are not current tested support
@@ -29,6 +40,7 @@ The relevant compatibility changes include:
 
 - Kernel 6.x (`in_hardirq()` / timer API changes)
 - Kernel 7.1 (`cfg80211_ops` callbacks such as `add_key`, `add_station`, and `get_station` now take `struct wireless_dev *` instead of `struct net_device *`; the `struct ieee80211_mgmt` action-frame union layout changed)
+- Kernel 7.2 (the `remain_on_channel` `cfg80211_ops` callback gained an `rx_addr` parameter; `strncpy()` was removed from the kernel image entirely, so a local compat implementation is provided for the driver's existing call sites)
 
 Version-specific differences are handled internally via `LINUX_VERSION_CODE` guards, so one source tree can be built for the supported targets without manual patching.
 

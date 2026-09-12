@@ -16,6 +16,7 @@
 
 #include "rwnx_defs.h"
 #include "rwnx_debugfs.h"
+#include "rwnx_compat.h"
 
 static ssize_t rwnx_dbgfs_rhd_read(struct file *file,
                                    char __user *user_buf,

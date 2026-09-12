@@ -27,6 +27,26 @@
 #error "Minimum kernel version supported is 3.10"
 #endif
 
+/* kernel 7.2 dropped strncpy() from the kernel image entirely (replaced by
+ * strscpy()/strscpy_pad() throughout the tree); provide it back for the
+ * driver's existing call sites, matching strncpy()'s original semantics
+ * (copy up to n bytes, zero-pad the remainder, no guaranteed termination
+ * if src is not shorter than n).
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+#include <linux/string.h>
+static inline char *strncpy(char *dest, const char *src, size_t n)
+{
+    size_t len = strnlen(src, n);
+
+    memcpy(dest, src, len);
+    if (len < n)
+        memset(dest + len, 0, n - len);
+
+    return dest;
+}
+#endif
+
 /* Generic */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 #define __bf_shf(x) (__builtin_ffsll(x) - 1)

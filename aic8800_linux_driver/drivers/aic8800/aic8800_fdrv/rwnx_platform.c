@@ -14,6 +14,7 @@
 #include <linux/vmalloc.h>
 
 #include "rwnx_platform.h"
+#include "rwnx_compat.h"
 #include "reg_access.h"
 #include "hal_desc.h"
 #include "rwnx_main.h"
