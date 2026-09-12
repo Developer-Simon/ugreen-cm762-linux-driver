@@ -1,5 +1,10 @@
 # UGREEN CM762 AIC8800 Linux driver
 
+[![Build](https://github.com/Developer-Simon/ugreen-cm762-linux-driver/actions/workflows/build.yml/badge.svg)](https://github.com/Developer-Simon/ugreen-cm762-linux-driver/actions/workflows/build.yml)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![Kernel: 6.17 | 7.1 | 7.2](https://img.shields.io/badge/Kernel-6.17%20%7C%207.1%20%7C%207.2-green.svg)](https://kernel.org/)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-orange.svg)](https://www.linux.org/)
+
 Patched AIC8800 driver for the UGREEN CM762 USB Wi-Fi adapter. The chip is an
 AIC8800D80 (USB ID `a69c:8d80`); the device enumerates in mass-storage mode
 first and switches to that ID once usb-modeswitch runs.

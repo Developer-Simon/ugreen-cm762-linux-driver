@@ -1,0 +1,66 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "aic8800_linux_driver/drivers/**"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "aic8800_linux_driver/drivers/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+jobs:
+  debian-build:
+    name: Build against Debian/Ubuntu kernel headers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential "linux-headers-$(uname -r)"
+
+      - name: Build kernel modules
+        run: |
+          make -C aic8800_linux_driver/drivers/aic8800
+
+      - name: Check module output
+        run: |
+          test -f aic8800_linux_driver/drivers/aic8800/aic8800_fdrv/aic8800_fdrv.ko
+          test -f aic8800_linux_driver/drivers/aic8800/aic_load_fw/aic_load_fw.ko
+          modinfo aic8800_linux_driver/drivers/aic8800/aic8800_fdrv/aic8800_fdrv.ko | head -20
+
+  fedora-build:
+    name: Build against Fedora kernel headers
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:41
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          dnf install -y gcc make kernel-devel kernel-headers elfutils-libelf-devel dwarves bc perl-interpreter kmod
+
+      - name: Determine installed kernel-devel version
+        id: kver
+        run: |
+          KVER="$(rpm -q --qf '%{VERSION}-%{RELEASE}.%{ARCH}\n' kernel-devel | tail -1)"
+          echo "kver=${KVER}" >> "$GITHUB_OUTPUT"
+          echo "Building against kernel-devel ${KVER}"
+
+      - name: Build kernel modules
+        run: |
+          make -C aic8800_linux_driver/drivers/aic8800 \
+            KDIR=/usr/src/kernels/${{ steps.kver.outputs.kver }} \
+            KVER=${{ steps.kver.outputs.kver }}
+
+      - name: Check module output
+        run: |
+          test -f aic8800_linux_driver/drivers/aic8800/aic8800_fdrv/aic8800_fdrv.ko
+          test -f aic8800_linux_driver/drivers/aic8800/aic_load_fw/aic_load_fw.ko
+          modinfo aic8800_linux_driver/drivers/aic8800/aic8800_fdrv/aic8800_fdrv.ko | head -20
