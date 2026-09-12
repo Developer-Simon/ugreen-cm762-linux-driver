@@ -91,6 +91,11 @@
  */
 #define WDEV_CFG80211_OPS_KERNEL_VERSION KERNEL_VERSION(7, 1, 0)
 
+/* kernel 7.2 added an rx_addr parameter to the remain_on_channel cfg80211_ops
+ * callback
+ */
+#define ROC_RX_ADDR_KERNEL_VERSION KERNEL_VERSION(7, 2, 0)
+
 #ifndef IEEE80211_MAX_AMPDU_BUF
 #define IEEE80211_MAX_AMPDU_BUF                             0x100
 #endif
