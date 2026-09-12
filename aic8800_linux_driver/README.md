@@ -3,6 +3,16 @@
 ## Installation Guide Created ✓
 See `INSTALL.md` for detailed installation instructions.
 
+## Supported Hardware
+
+The UGREEN CM762 identifies itself as USB ID `a69c:8d80` (AIC8800D80 chip) once
+switched out of its initial mass-storage mode. `aic_load_fw` already recognized
+this ID and carries the matching `aic8800D80` firmware, but the `aic8800_fdrv`
+network driver's USB ID table and `aicwf_usb_chipmatch()` did not — the device
+would load firmware but never bind a wireless interface. `USB_PRODUCT_ID_AIC8800D80`
+is now registered and routed through the same code path already used for other
+AIC8800-family USB IDs (D81, D41, D83-D88, TP-Link/Tenda OEM variants).
+
 ## Building the Debian Package
 
 ### Prerequisites
