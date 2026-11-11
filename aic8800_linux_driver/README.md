@@ -18,11 +18,11 @@ sudo dnf install rpm-build
 ./build-rpm-package.sh
 ```
 
-This produces `ugreen-cm762-aic8800-dkms-1.4.0-1.<dist>.noarch.rpm` and a
+This produces `ugreen-cm762-aic8800-dkms-1.5.0-1.<dist>.noarch.rpm` and a
 matching source RPM. The spec file is `rpm/ugreen-cm762-aic8800-dkms.spec`.
 
 ```bash
-sudo dnf install ./ugreen-cm762-aic8800-dkms-1.4.0-1.fc44.noarch.rpm
+sudo dnf install ./ugreen-cm762-aic8800-dkms-1.5.0-1.fc44.noarch.rpm
 ```
 
 Besides the DKMS source, the RPM installs the firmware to
@@ -37,17 +37,19 @@ sudo apt install build-essential dkms dpkg-dev linux-headers-$(uname -r)
 ./build-debian-package.sh
 ```
 
-This produces `ugreen-cm762-aic8800-dkms_1.4.0_all.deb`.
+This produces `ugreen-cm762-aic8800-dkms_1.5.0_all.deb`.
 
 ```bash
-sudo dpkg -i ugreen-cm762-aic8800-dkms_1.4.0_all.deb
+sudo dpkg -i ugreen-cm762-aic8800-dkms_1.5.0_all.deb
 ```
 
 If dependencies are missing, run `sudo apt-get install -f`. To remove the
 package, run `sudo dpkg -r ugreen-cm762-aic8800-dkms`.
 
-Tagged releases build both packages in CI and attach them to the GitHub
-release; see the release workflow section in the top-level README.
+Prebuilt packages for each version are attached to the
+[GitHub releases](https://github.com/Developer-Simon/ugreen-cm762-linux-driver/releases).
+CI publishes a new release when a version bump is merged to `main`; see
+"Releases and CI" in the top-level README.
 
 ## Kernel compatibility
 
@@ -104,7 +106,7 @@ sudo dmesg | grep -i aic8800
 Module not found:
 ```bash
 sudo dkms status
-sudo dkms install aic8800/1.4.0
+sudo dkms install aic8800/1.5.0
 ```
 
 DKMS rebuilds the modules after a kernel update. If that didn't happen, run
@@ -114,7 +116,7 @@ DKMS rebuilds the modules after a kernel update. If that didn't happen, run
 
 Both packages:
 
-- `/usr/src/aic8800-1.4.0/`: driver source for DKMS
+- `/usr/src/aic8800-1.5.0/`: driver source for DKMS
 
 Debian package:
 
