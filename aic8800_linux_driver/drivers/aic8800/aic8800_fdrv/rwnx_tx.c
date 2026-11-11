@@ -1703,7 +1703,9 @@ int rwnx_start_mgmt_xmit(struct rwnx_vif *vif, struct rwnx_sta *sta,
         return -ENOMEM;
     }
 
+#if !(LINUX_VERSION_CODE >= CFG80211_COOKIE_KERNEL_VERSION)
     *cookie = (unsigned long)skb;
+#endif
 
     /*
      * Move skb->data pointer in order to reserve room for rwnx_txhdr
@@ -1781,6 +1783,7 @@ int rwnx_start_mgmt_xmit(struct rwnx_vif *vif, struct rwnx_sta *sta,
 #endif
     sw_txhdr->raw_frame = 0;
     sw_txhdr->fixed_rate = 0;
+    sw_txhdr->mgmt_cookie = *cookie;
     //----------------------------------------------------------------------
 
     /* Fill the Descriptor to be provided to the MAC SW */
@@ -1931,6 +1934,7 @@ void rwnx_probersp_work(struct work_struct *work)
 	sw_txhdr->amsdu.nb = 0;
 #endif
 	sw_txhdr->raw_frame = 0;
+	sw_txhdr->mgmt_cookie = (unsigned long)skb;
 	sw_txhdr->fixed_rate = 0;
 
 	desc = &sw_txhdr->desc;
@@ -2278,6 +2282,7 @@ netdev_tx_t rwnx_start_monitor_if_xmit(struct sk_buff *skb, struct net_device *d
     sw_txhdr->headroom = headroom;
     sw_txhdr->map_len = skb_mgmt->len - offsetof(struct rwnx_txhdr, hw_hdr);
     sw_txhdr->raw_frame = 1;
+    sw_txhdr->mgmt_cookie = (unsigned long)skb_mgmt;
     sw_txhdr->fixed_rate = 1;
     sw_txhdr->rate_config = ((rate_fmt << FORMAT_MOD_TX_RCX_OFT) & FORMAT_MOD_TX_RCX_MASK) |
                             ((txsig_bw << BW_TX_RCX_OFT) & BW_TX_RCX_MASK) |
@@ -2386,7 +2391,7 @@ int rwnx_txdatacfm(void *pthis, void *host_id)
 #endif
         /* Confirm transmission to CFG80211 */
         cfg80211_mgmt_tx_status(&sw_txhdr->rwnx_vif->wdev,
-                                (unsigned long)skb,
+                                sw_txhdr->mgmt_cookie,
                                 (skb->data + sw_txhdr->headroom),
                                 sw_txhdr->frame_len,
                                 rwnx_txst.acknowledged,

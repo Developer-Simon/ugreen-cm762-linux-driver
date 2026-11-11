@@ -1,0 +1,114 @@
+name: Release
+
+# Publishes a GitHub release whenever main carries a package version that has
+# no release yet. Bump the version in build-debian-package.sh and the RPM spec
+# to trigger one. Running the workflow by hand rebuilds the packages for the
+# current version and replaces the assets of an existing release.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    name: Determine version
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      publish: ${{ steps.v.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read package versions
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          DEB=$(sed -n 's/^PACKAGE_VERSION="\([0-9][^"]*\)"/\1/p' aic8800_linux_driver/build-debian-package.sh | head -1)
+          RPM=$(sed -n 's/^Version:[[:space:]]*//p' aic8800_linux_driver/rpm/ugreen-cm762-aic8800-dkms.spec)
+          if [ -z "$DEB" ] || [ "$DEB" != "$RPM" ]; then
+            echo "Version mismatch: build-debian-package.sh=$DEB, spec=$RPM"
+            exit 1
+          fi
+          TAG="v$DEB"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" >/dev/null 2>&1 && [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
+            echo "Release $TAG already exists, nothing to do."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Will publish $TAG"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  compile:
+    name: Compile check
+    needs: version
+    if: needs.version.outputs.publish == 'true'
+    uses: ./.github/workflows/build.yml
+
+  deb:
+    name: Build .deb
+    needs: [version, compile]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build package
+        working-directory: aic8800_linux_driver
+        run: ./build-debian-package.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: aic8800_linux_driver/*.deb
+          if-no-files-found: error
+
+  rpm:
+    name: Build .rpm
+    needs: [version, compile]
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+    steps:
+      - name: Install build dependencies
+        run: dnf install -y rpm-build tar gzip
+
+      - uses: actions/checkout@v4
+
+      - name: Build package
+        working-directory: aic8800_linux_driver
+        run: ./build-rpm-package.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: aic8800_linux_driver/*.rpm
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: [version, deb, rpm]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          ls -l dist
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+          fi

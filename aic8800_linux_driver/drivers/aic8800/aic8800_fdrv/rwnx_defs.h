@@ -96,6 +96,13 @@
  */
 #define ROC_RX_ADDR_KERNEL_VERSION KERNEL_VERSION(7, 2, 0)
 
+/* kernel 7.3 moved cookie allocation into cfg80211: mgmt_tx and
+ * remain_on_channel now receive the cookie by value instead of returning it,
+ * probe_client was renamed to probe_peer (also taking the cookie by value),
+ * and cfg80211_probe_status() gained a link_id parameter
+ */
+#define CFG80211_COOKIE_KERNEL_VERSION KERNEL_VERSION(7, 3, 0)
+
 #ifndef IEEE80211_MAX_AMPDU_BUF
 #define IEEE80211_MAX_AMPDU_BUF                             0x100
 #endif
@@ -782,7 +789,7 @@ struct rwnx_hw {
 #endif
     /* RoC Management */
     struct rwnx_roc_elem *roc_elem;             /* Information provided by cfg80211 in its remain on channel request */
-    u32 roc_cookie_cnt;                         /* Counter used to identify RoC request sent by cfg80211 */
+    u64 roc_cookie_cnt;                         /* Counter used to identify RoC request sent by cfg80211 */
 
     struct rwnx_cmd_mgr *cmd_mgr;
 
