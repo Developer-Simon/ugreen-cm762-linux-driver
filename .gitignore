@@ -21,6 +21,8 @@ debian-package/
 *.deb
 *.changes
 *.buildinfo
+rpmbuild/
+*.rpm
 
 # Build artifacts
 *.a
