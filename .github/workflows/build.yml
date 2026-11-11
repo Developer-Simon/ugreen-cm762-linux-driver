@@ -11,6 +11,7 @@ on:
       - "aic8800_linux_driver/drivers/**"
       - ".github/workflows/build.yml"
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   debian-build:
@@ -38,7 +39,7 @@ jobs:
     name: Build against Fedora kernel headers
     runs-on: ubuntu-latest
     container:
-      image: fedora:41
+      image: fedora:44
     steps:
       - uses: actions/checkout@v4
 
