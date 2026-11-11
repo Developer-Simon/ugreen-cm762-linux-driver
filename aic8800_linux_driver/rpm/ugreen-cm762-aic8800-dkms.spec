@@ -1,7 +1,7 @@
 %global dkms_name aic8800
 
 Name:           ugreen-cm762-aic8800-dkms
-Version:        1.4.0
+Version:        1.5.0
 Release:        1%{?dist}
 Summary:        DKMS driver for the UGREEN CM762 USB Wi-Fi adapter (AIC8800D80)
 License:        GPL-2.0-or-later
@@ -86,5 +86,8 @@ udevadm control --reload >/dev/null 2>&1 || :
 %{_prefix}/lib/modules-load.d/aic8800.conf
 
 %changelog
+* Wed Nov 11 2026 Developer-Simon <73778205+Developer-Simon@users.noreply.github.com> - 1.5.0-1
+- Kernel 7.3 support
+
 * Wed Nov 11 2026 Developer-Simon <73778205+Developer-Simon@users.noreply.github.com> - 1.4.0-1
 - First RPM packaging; builds against kernels 6.17 through 7.3

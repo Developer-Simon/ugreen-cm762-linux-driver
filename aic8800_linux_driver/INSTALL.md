@@ -45,9 +45,9 @@ Install the result only into the matching kernel tree. Do not copy a module buil
 against 6.17 into 7.1, or vice versa. With DKMS, build each target explicitly:
 
 ```bash
-sudo dkms build -m aic8800 -v 1.4.0 -k ${TARGET_KERNEL}
-sudo dkms install -m aic8800 -v 1.4.0 -k ${TARGET_KERNEL}
-dkms status aic8800/1.4.0
+sudo dkms build -m aic8800 -v 1.5.0 -k ${TARGET_KERNEL}
+sudo dkms install -m aic8800 -v 1.5.0 -k ${TARGET_KERNEL}
+dkms status aic8800/1.5.0
 ```
 
 The `-k` value must be the exact kernel version shown by the directory under
@@ -101,16 +101,16 @@ ip a  # Check for new wireless interface (wlx...)
 
 1. **Copy driver to DKMS location:**
 ```bash
-sudo mkdir -p /usr/src/aic8800-1.4.0
-sudo cp -r drivers/aic8800/* /usr/src/aic8800-1.4.0/
-sudo cp -r fw /usr/src/aic8800-1.4.0/
+sudo mkdir -p /usr/src/aic8800-1.5.0
+sudo cp -r drivers/aic8800/* /usr/src/aic8800-1.5.0/
+sudo cp -r fw /usr/src/aic8800-1.5.0/
 ```
 
 2. **Create DKMS configuration:**
 ```bash
-sudo tee /usr/src/aic8800-1.4.0/dkms.conf << 'EOF'
+sudo tee /usr/src/aic8800-1.5.0/dkms.conf << 'EOF'
 PACKAGE_NAME="aic8800"
-PACKAGE_VERSION="1.4.0"
+PACKAGE_VERSION="1.5.0"
 BUILT_MODULE_NAME[0]="aic_load_fw"
 BUILT_MODULE_LOCATION[0]="aic_load_fw/"
 BUILT_MODULE_NAME[1]="aic8800_fdrv"
@@ -125,9 +125,9 @@ EOF
 
 3. **Add and build with DKMS:**
 ```bash
-sudo dkms add -m aic8800 -v 1.4.0
-sudo dkms build -m aic8800 -v 1.4.0
-sudo dkms install -m aic8800 -v 1.4.0
+sudo dkms add -m aic8800 -v 1.5.0
+sudo dkms build -m aic8800 -v 1.5.0
+sudo dkms install -m aic8800 -v 1.5.0
 ```
 
 4. **Load the driver:**
@@ -147,8 +147,8 @@ sudo rm /etc/modules-load.d/aic8800.conf
 
 #### DKMS Installation:
 ```bash
-sudo dkms remove aic8800/1.4.0 --all
-sudo rm -rf /usr/src/aic8800-1.4.0
+sudo dkms remove aic8800/1.5.0 --all
+sudo rm -rf /usr/src/aic8800-1.5.0
 ```
 
 ### Troubleshooting
