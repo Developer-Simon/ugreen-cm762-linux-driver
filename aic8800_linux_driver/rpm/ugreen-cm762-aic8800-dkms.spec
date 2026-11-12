@@ -1,7 +1,7 @@
 %global dkms_name aic8800
 
 Name:           ugreen-cm762-aic8800-dkms
-Version:        1.5.0
+Version:        1.5.1
 Release:        1%{?dist}
 Summary:        DKMS driver for the UGREEN CM762 USB Wi-Fi adapter (AIC8800D80)
 License:        GPL-2.0-or-later
@@ -86,6 +86,12 @@ udevadm control --reload >/dev/null 2>&1 || :
 %{_prefix}/lib/modules-load.d/aic8800.conf
 
 %changelog
+* Thu Nov 12 2026 Developer-Simon <73778205+Developer-Simon@users.noreply.github.com> - 1.5.1-1
+- Fix firmware loading from kernel threads on Linux 7.3: the adapter is
+  probed from the usb_hub_wq kworker after it re-enumerates, where paths no
+  longer resolve against the real root. The firmware is now opened relative
+  to init's root, so wlan0 appears at boot without reloading the modules.
+
 * Wed Nov 11 2026 Developer-Simon <73778205+Developer-Simon@users.noreply.github.com> - 1.5.0-1
 - Kernel 7.3 support
 

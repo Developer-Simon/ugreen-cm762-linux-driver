@@ -6,7 +6,7 @@
 set -e  # Exit on error
 
 PACKAGE_NAME="ugreen-cm762-aic8800-dkms"
-PACKAGE_VERSION="1.5.0"
+PACKAGE_VERSION="1.5.1"
 PACKAGE_ARCH="all"
 MAINTAINER="Driver Maintainer <driver@example.com>"
 DESCRIPTION="UGREEN CM762 USB Wireless Adapter Driver (AIC8800 chipset) for Linux kernels 6.17 to 7.3"
