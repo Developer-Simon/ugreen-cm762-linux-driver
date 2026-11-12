@@ -32,6 +32,7 @@
 #include "aicwf_usb.h"
 #endif
 #include "md5.h"
+#include "aic_fs_compat.h"
 #include "aicwf_compat_8800dc.h"
 #include "aicwf_compat_8800d80.h"
 #include "aicwf_compat_8800d80x2.h"
@@ -666,7 +667,7 @@ static int rwnx_load_firmware(u32 **fw_buf, const char *name, struct device *dev
     AICWFDBG(LOGINFO, "%s :firmware path = %s  \n", __func__, path);
 
     /* open the firmware file */
-    fp = filp_open(path, O_RDONLY, 0);
+    fp = aic_filp_open(path, O_RDONLY, 0);
     if (IS_ERR_OR_NULL(fp)) {
         AICWFDBG(LOGERROR, "%s: %s file failed to open\n", __func__, name);
         *fw_buf = NULL;
@@ -872,7 +873,7 @@ static int aic_load_firmware(u32 ** fw_buf, const char *name,
 
 
         /* open the firmware file */
-        fp=filp_open(path, O_RDONLY, 0);
+        fp=aic_filp_open(path, O_RDONLY, 0);
         if(IS_ERR(fp) || (!fp)){
 	        printk("%s: %s file failed to open\n", __func__, name);
                 if(IS_ERR(fp))
@@ -1559,7 +1560,7 @@ int is_file_exist(char* name)
 
     len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path, name);
 
-    fp = filp_open(path, O_RDONLY, 0);
+    fp = aic_filp_open(path, O_RDONLY, 0);
     if (IS_ERR(fp)) {
         __putname(path);
         fp = NULL;

@@ -3,6 +3,7 @@
 #include "reg_access.h"
 #include "rwnx_platform.h"
 #include "aicwf_compat_8800dc.h"
+#include "aic_fs_compat.h"
 
 #define RWNX_MAC_FW_RF_BASE_NAME_8800DC   "lmacfw_rf_8800dc.bin"
 
@@ -3317,7 +3318,7 @@ int aicwf_dpd_result_write_8800dc(void *buf, int buf_len)
     len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path, FW_DPDRESULT_NAME_8800DC);
     //AICWFDBG(LOGINFO, "%s\n", path);
 
-    fp = filp_open(path, O_RDWR | O_CREAT, 0644);
+    fp = aic_filp_open(path, O_RDWR | O_CREAT, 0644);
     if (IS_ERR(fp)) {
         AICWFDBG(LOGINFO, "fp open fial\n");
 		__putname(path);

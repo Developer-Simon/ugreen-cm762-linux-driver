@@ -21,6 +21,7 @@
 #include "rwnx_main.h"
 #include "aicwf_txrxif.h"
 #include "rwnx_strs.h"
+#include "aic_fs_compat.h"
 
 #ifdef RF_WRITE_FILE
 #include <linux/fs.h>
@@ -1175,7 +1176,7 @@ int rwnx_rf_write_file(void *buf, int buf_len)
 	len = snprintf(path, FW_PATH_MAX_LEN_RF, "%s/%s", aic_fw_path, FW_RF_CALIB_FILE);
 	AICWFDBG(LOGINFO, "%s: path=%s\n", __func__,path);
 	
-	fp = filp_open(path, O_RDWR | O_CREAT, 0644);
+	fp = aic_filp_open(path, O_RDWR | O_CREAT, 0644);
 	if (IS_ERR(fp)) {
 	  AICWFDBG(LOGINFO, "fp open fial\n");
 	  __putname(path);
@@ -1220,7 +1221,7 @@ int is_file_exist_rf(char* name)
 
     len = snprintf(path, FW_PATH_MAX_LEN_RF, "%s/%s", aic_fw_path, name);
 
-    fp = filp_open(path, O_RDONLY, 0);
+    fp = aic_filp_open(path, O_RDONLY, 0);
     if (IS_ERR(fp)) {
         __putname(path);
         fp = NULL;
@@ -1317,7 +1318,7 @@ int rwnx_send_rf_calib_req(struct rwnx_hw *rwnx_hw, struct mm_set_rf_calib_cfm *
 				return -2;
 			}
 
-			fp = filp_open(path, O_RDONLY, 0);
+			fp = aic_filp_open(path, O_RDONLY, 0);
 			if (IS_ERR_OR_NULL(fp)) 
 			{
 				AICWFDBG(LOGERROR, "%s: %s file failed to open\n", __func__, FW_RF_CALIB_FILE);
