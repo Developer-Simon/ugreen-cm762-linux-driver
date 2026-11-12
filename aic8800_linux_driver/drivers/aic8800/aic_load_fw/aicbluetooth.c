@@ -6,6 +6,7 @@
 #include "md5.h"
 #include "aicbluetooth.h"
 #include "aicwf_debug.h"
+#include "aic_fs_compat.h"
 #ifdef CONFIG_USE_FW_REQUEST
 #include <linux/firmware.h>
 #endif
@@ -379,7 +380,7 @@ static int aic_load_firmware(u32 ** fw_buf, const char *name, struct device *dev
 
 
     /* open the firmware file */
-    fp=filp_open(path, O_RDONLY, 0);
+    fp=aic_filp_open(path, O_RDONLY, 0);
     if(IS_ERR(fp) || (!fp)){
             printk("%s: %s file failed to open\n", __func__, name);
             if(IS_ERR(fp))

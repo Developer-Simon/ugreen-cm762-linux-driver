@@ -23,8 +23,8 @@ during installation, and rebuild them automatically after every kernel update.
 ### Fedora
 
 ```bash
-curl -LO https://github.com/Developer-Simon/ugreen-cm762-linux-driver/releases/download/v1.5.0/ugreen-cm762-aic8800-dkms-1.5.0-1.fc44.noarch.rpm
-sudo dnf install ./ugreen-cm762-aic8800-dkms-1.5.0-1.fc44.noarch.rpm
+curl -LO https://github.com/Developer-Simon/ugreen-cm762-linux-driver/releases/download/v1.5.1/ugreen-cm762-aic8800-dkms-1.5.1-1.fc44.noarch.rpm
+sudo dnf install ./ugreen-cm762-aic8800-dkms-1.5.1-1.fc44.noarch.rpm
 ```
 
 dnf pulls in `dkms`, `kernel-devel`, `gcc` and `make`, then builds the modules
@@ -37,8 +37,8 @@ Unplug and replug the adapter once after installing.
 
 ```bash
 sudo apt install dkms build-essential linux-headers-$(uname -r)
-curl -LO https://github.com/Developer-Simon/ugreen-cm762-linux-driver/releases/download/v1.5.0/ugreen-cm762-aic8800-dkms_1.5.0_all.deb
-sudo dpkg -i ./ugreen-cm762-aic8800-dkms_1.5.0_all.deb
+curl -LO https://github.com/Developer-Simon/ugreen-cm762-linux-driver/releases/download/v1.5.1/ugreen-cm762-aic8800-dkms_1.5.1_all.deb
+sudo dpkg -i ./ugreen-cm762-aic8800-dkms_1.5.1_all.deb
 ```
 
 If dpkg reports missing dependencies, run `sudo apt-get install -f`.
@@ -56,7 +56,7 @@ cd ugreen-cm762-linux-driver/aic8800_linux_driver
 
 | Release | Kernels |
 | --- | --- |
-| v1.5.0 | 6.17, 7.1, 7.2, 7.3 |
+| v1.5.1 | 6.17, 7.1, 7.2, 7.3 |
 | v1.4.0 | 6.17, 7.1, 7.2 |
 
 Use the latest release unless you have a reason not to.
